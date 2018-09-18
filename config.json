@@ -1,0 +1,37 @@
+{
+  "setuppy": {
+    "name": "pygosemsim",
+    "version": "0.1.0",
+    "description": "GO (Gene Ontology) semantic similarity library for Python",
+    "url": "https://github.com/mojaie/pygosemsim",
+    "author": "Seiji Matsuoka",
+    "author_email": "mojaie@aol.com",
+    "license": "MIT",
+    "classifiers": [
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7"
+    ],
+    "keywords": "gene-ontology bioformatics semantic-similarity",
+    "python_requires": ">= 3.6",
+    "install_requires": ["networkx"]
+  },
+  "metayaml": {
+    "package": {
+      "name": "pygosemsim"
+    },
+    "source": {
+      "git_url": "../"
+    },
+    "requirements": {
+      "build": ["python", "setuptools"],
+      "run": ["python", "networkx"]
+    },
+    "test": {"imports": "pygosemsim"},
+    "about": {"license_file": "LICENSE"}
+  }
+}
