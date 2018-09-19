@@ -6,12 +6,13 @@ import networkx as nx
 
 def information_content(G, term):
     freq = (len(nx.descendants(G, term)) + 1) / len(G)
-    return -1 * math.log2(freq)
+    return round(-1 * math.log2(freq), 3)
 
 
 def resnik(G, term1, term2):
     """Semantic similarity based on Resnik method
     """
+    # TODO: too slow
     lca = nx.lowest_common_ancestor(G, term1, term2)
     if lca is None:
         raise ValueError("No common ancestor")
@@ -24,7 +25,7 @@ def lin(G, term1, term2):
     ic1 = information_content(G, term1)
     ic2 = information_content(G, term2)
     ic_lca = resnik(G, term1, term2)
-    return 2 * ic_lca / (ic1 + ic2)
+    return round(2 * ic_lca / (ic1 + ic2), 3)
 
 
 default_wf = (("is_a", 0.8), ("part_of", 0.6))
@@ -60,4 +61,4 @@ def wang(G, term1, term2, weight_factor=default_wf):
     svb = sum(s2.values())
     common = set(s1.keys()) & set(s2.keys())
     cv = sum(s1[c] + s2[c] for c in common)
-    return cv / (sva + svb)
+    return round(cv / (sva + svb), 3)

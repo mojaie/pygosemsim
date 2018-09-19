@@ -44,13 +44,13 @@ def download(name, url, decode="utf-8"):
             dl = round(downloaded_bytes / (1024 * 1024), 1)
             tot = round(total_size / (1024 * 1024), 1)
             print(f"Downloaded {dl}MB of {tot}MB ({progress} %)", end="\r")
-        print("\n")
         if decode:
             data = b"".join(chunks).decode(decode)
             mode = "wt"
         else:
             data = b"".join(chunks)
             mode = "wb"
+        print("")
     with open(resource_dir / name, mode) as f:
         f.write(data)
     tot = round(total_size / (1024 * 1024), 1)

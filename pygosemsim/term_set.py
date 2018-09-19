@@ -1,8 +1,6 @@
 
-from pygosemsim import similarity
 
-
-def max_sim(terms1, terms2, sem_sim=similarity.resnik):
+def sim_max(terms1, terms2, sem_sim):
     """Similarity score between two term sets based on maximum value
     """
     sims = []
@@ -13,7 +11,7 @@ def max_sim(terms1, terms2, sem_sim=similarity.resnik):
     return max(sims)
 
 
-def avg_sim(terms1, terms2, sem_sim=similarity.resnik):
+def sim_avg(terms1, terms2, sem_sim):
     """Similarity between two term sets based on average
     """
     sims = []
@@ -24,7 +22,7 @@ def avg_sim(terms1, terms2, sem_sim=similarity.resnik):
     return sum(sims) / (len(terms1) * len(terms2))
 
 
-def bma_sim(terms1, terms2, sem_sim=similarity.resnik):
+def sim_bma(terms1, terms2, sem_sim):
     """Similarity between two term sets based on Best-Match Average (BMA)
     """
     sims = []
