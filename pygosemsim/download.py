@@ -23,7 +23,7 @@ def clear():
     print(f"Resource directory is now empty: {resource_dir}")
 
 
-def download(name, url):
+def download(name, url, decode="utf-8"):
     """Download resources via HTTP
     """
     initialize()
@@ -39,14 +39,19 @@ def download(name, url):
             downloaded_bytes += len(chunk)
             if not chunk:
                 break
-            chunks.append(chunk.decode("utf-8"))
+            chunks.append(chunk)
             progress = round(downloaded_bytes / total_size * 100, 1)
             dl = round(downloaded_bytes / (1024 * 1024), 1)
             tot = round(total_size / (1024 * 1024), 1)
             print(f"Downloaded {dl}MB of {tot}MB ({progress} %)", end="\r")
         print("\n")
-        data = "".join(chunks)
-    with open(resource_dir / name, "wt") as f:
+        if decode:
+            data = b"".join(chunks).decode(decode)
+            mode = "wt"
+        else:
+            data = b"".join(chunks)
+            mode = "wb"
+    with open(resource_dir / name, mode) as f:
         f.write(data)
     tot = round(total_size / (1024 * 1024), 1)
     print(f"Download finished: {name} ({tot}) MB")
@@ -59,4 +64,14 @@ def obo(name="go-basic"):
     if dest.exists():
         raise ValueError(
             f"{filename} already exists in the resource directory")
-    download(f"{name}.obo", go_obo_url)
+    download(filename, go_obo_url)
+
+
+def gaf(name="goa_human"):
+    filename = f"{name}.gaf.gz"
+    go_obo_url = f"http://geneontology.org/gene-associations/{filename}"
+    dest = resource_dir / filename
+    if dest.exists():
+        raise ValueError(
+            f"{filename} already exists in the resource directory")
+    download(filename, go_obo_url, decode=False)
