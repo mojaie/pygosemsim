@@ -20,10 +20,6 @@ class TestPerformance(unittest.TestCase):
         graph.precalc_descendants(cls.G)
         cls.annot = annotation.from_resource("goa_human")
 
-    def test_similarity(self):
-        similarity.resnik(self.G, "GO:0004340", "GO:0019158")
-        similarity.wang(self.G, "GO:0004340", "GO:0019158")
-
     @debug.profile
     def test_term_set(self):
         trpv1 = self.annot["Q8NER1"]["annotation"].keys()

@@ -81,9 +81,7 @@ def from_obo_lines(lines, ignore_obsolete=True):
     # Header
     fv_line = next(lines_iter)
     format_ver = fv_line.split(":")[1].strip()
-    dv_line = next(lines_iter)
-    data_ver = dv_line.split(":")[1].strip()
-    print(f"format-version: {format_ver}, data-version: {data_ver}")
+    print(f"format-version: {format_ver}")
 
     # Build graph
     G = GoGraph()

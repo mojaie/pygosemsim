@@ -1,12 +1,14 @@
 
+import networkx as nx
+
 
 def sim_func(G, sim_method, term1, term2):
     try:
         sim = sim_method(G, term1, term2)
-    except ValueError:
-        sim = 0
-    if sim is None:
-        sim = 0
+    except (KeyError, nx.NetworkXError):  # missing term
+        return
+    if sim is None:  # similarity undefined (ex. no_common_ancestors)
+        return
     return sim
 
 
@@ -17,7 +19,8 @@ def sim_max(terms1, terms2, sem_sim):
     for t1 in terms1:
         for t2 in terms2:
             sim = sem_sim(t1, t2)
-            sims.append(sim)
+            if sim is not None:
+                sims.append(sim)
     return round(max(sims), 3)
 
 
@@ -28,8 +31,11 @@ def sim_avg(terms1, terms2, sem_sim):
     for t1 in terms1:
         for t2 in terms2:
             sim = sem_sim(t1, t2)
-            sims.append(sim)
-    return round(sum(sims) / (len(terms1) * len(terms2)), 3)
+            if sim is not None:
+                sims.append(sim)
+    if not sims:
+        return
+    return round(sum(sims) / len(sims), 3)
 
 
 def sim_bma(terms1, terms2, sem_sim):
@@ -40,12 +46,18 @@ def sim_bma(terms1, terms2, sem_sim):
         row = []
         for t2 in terms2:
             sim = sem_sim(t1, t2)
-            row.append(sim)
-        sims.append(max(row))
+            if sim is not None:
+                row.append(sim)
+        if row:
+            sims.append(max(row))
     for t2 in terms2:
         row = []
         for t1 in terms1:
             sim = sem_sim(t1, t2)
-            row.append(sim)
-        sims.append(max(row))
-    return round(sum(sims) / (len(terms1) + len(terms2)), 3)
+            if sim is not None:
+                row.append(sim)
+        if row:
+            sims.append(max(row))
+    if not sims:
+        return
+    return round(sum(sims) / len(sims), 3)
