@@ -1,7 +1,18 @@
 
+from collections import Counter
 import math
 
 import networkx as nx
+
+
+def precalc_descendants(G):
+    """Pre-calculate number of descendents of the graph nodes
+    """
+    G.desc_count = Counter()
+    for n in G:
+        G.desc_count[n] += 1
+        for ans in nx.ancestors(G, n):
+            G.desc_count[ans] += 1
 
 
 def information_content(G, term):
@@ -15,11 +26,13 @@ def information_content(G, term):
         str - Information content
 
     Raises:
-        nx.NetworkXError: The term was not found in GoGraph
+        KeyError: The term was not found in GoGraph
         ValueError: No pre-calculated desc_count
     """
-    if not G.desc_count:
+    if G.desc_count is None:
         raise ValueError("No pre-calculated desc_count.")
+    if term not in G.desc_count:
+        raise KeyError("Missing term")
     freq = G.desc_count[term] / len(G)
     return round(-1 * math.log2(freq), 3)
 
@@ -40,7 +53,7 @@ def lowest_common_ancestor(G, term1, term2):
         nx.NetworkXError: The term was not found in GoGraph
         ValueError: No pre-calculated desc_count
     """
-    if not G.desc_count:
+    if G.desc_count is None:
         raise ValueError("No pre-calculated desc_count.")
     common_ans = nx.ancestors(G, term1) & nx.ancestors(G, term2)
     if not common_ans:

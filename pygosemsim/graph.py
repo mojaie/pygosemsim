@@ -1,5 +1,4 @@
 
-from collections import Counter
 from pathlib import Path
 import re
 
@@ -16,17 +15,8 @@ class GoGraph(nx.DiGraph):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.alt_ids = {}  # Alternative IDs
-        self.desc_count = Counter()
+        self.desc_count = None
         # self.reversed = self.reverse(copy=False)
-
-
-def precalc_descendants(G):
-    """Pre-calculate number of descendents of the graph nodes
-    """
-    for n in G:
-        G.desc_count[n] += 1
-        for ans in nx.ancestors(G, n):
-            G.desc_count[ans] += 1
 
 
 def parse_block(lines):

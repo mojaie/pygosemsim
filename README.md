@@ -39,6 +39,8 @@ format-version: 1.2, data-version: releases/2018-09-17
 
 ```pycon
 >>> from pygosemsim import similarity
+>>> graph.precalc_descendants(G)
+
 >>> similarity.resnik(G, "GO:0004340", "GO:0019158")
 13.459
 
