@@ -5,18 +5,29 @@ import networkx as nx
 
 
 def information_content(G, term):
-    freq = (len(nx.descendants(G, term)) + 1) / len(G)
+    if term not in G.desc_count:
+        return
+    freq = G.desc_count[term] / len(G)
     return round(-1 * math.log2(freq), 3)
+
+
+def lowest_common_ancestor(G, term1, term2):
+    if not G.desc_count:
+        raise ValueError("No pre-calculated desc_count.")
+    # Naive implementation of lowest common ancestors
+    common_ans = nx.ancestors(G, term1) & nx.ancestors(G, term2)
+    if not common_ans:
+        return
+    return min(common_ans, key=lambda x: G.desc_count.get(x, 0))
 
 
 def resnik(G, term1, term2):
     """Semantic similarity based on Resnik method
     """
-    # TODO: too slow
-    lca = nx.lowest_common_ancestor(G, term1, term2)
-    if lca is None:
-        raise ValueError("No common ancestor")
-    return information_content(G, lca)
+    # TODO: may not work
+    # mica = nx.lowest_common_ancestor(G, term1, term2)
+    mica = lowest_common_ancestor(G, term1, term2)
+    return information_content(G, mica)
 
 
 def lin(G, term1, term2):
@@ -25,7 +36,10 @@ def lin(G, term1, term2):
     ic1 = information_content(G, term1)
     ic2 = information_content(G, term2)
     ic_lca = resnik(G, term1, term2)
-    return round(2 * ic_lca / (ic1 + ic2), 3)
+    try:
+        return round(2 * ic_lca / (ic1 + ic2), 3)
+    except TypeError:
+        pass
 
 
 default_wf = (("is_a", 0.8), ("part_of", 0.6))

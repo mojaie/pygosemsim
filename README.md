@@ -15,7 +15,7 @@ Getting started
 
 ### Download GO datasets and build GO graph
 
-```
+```pycon
 >>> from pygosemsim import download
 >>> download.obo("go-basic")
 Download started: http://purl.obolibrary.org/obo/go/go-basic.obo
@@ -37,10 +37,11 @@ format-version: 1.2, data-version: releases/2018-09-17
 
 ### GO term semantic similarity
 
-```
+```pycon
 >>> from pygosemsim import similarity
 >>> similarity.resnik(G, "GO:0004340", "GO:0019158")
 13.459
+
 >>> similarity.wang(G, "GO:0004340", "GO:0019158")
 0.804
 ```
@@ -48,7 +49,7 @@ format-version: 1.2, data-version: releases/2018-09-17
 
 ### Download and parse gene annotation file
 
-```
+```pycon
 >>> download.gaf("goa_human")
 Download started: http://geneontology.org/gene-associations/goa_human.gaf.gz
 Downloaded 7.9MB of 7.9MB (100.0 %)
@@ -58,8 +59,9 @@ Download finished: goa_human.gaf.gz (7.9) MB
 >>> annot = annotation.from_resource("goa_human")
 gaf-version: 2.1
 
->>> len(annot)
+>>> len(annot)  # Number of genes annotated
 19712
+
 >>> annot["Q8NER1"]
 {
   'db_object_id': 'Q8NER1',
@@ -85,21 +87,14 @@ gaf-version: 2.1
 
 ### Gene similarity
 
-```
+```pycon
 >>> import functools
 >>> from pygosemsim import term_set
-
->>> def sim_func(term1, term2):
->>>     try:
->>>         sim = similarity.resnik(G, term1, term2)
->>>     except ValueError:
->>>         sim = 0
->>>     return sim
-
 >>> trpv1 = annot["Q8NER1"]["annotation"].keys()
 >>> trpa1 = annot["O75762"]["annotation"].keys()
->>> term_set.sim_bma(trpv1, trpa1, sim_func)
-
+>>> sf = functools.partial(term_set.sim_func, self.G, similarity.lin)
+>>> term_set.sim_bma(trpv1, trpa1, sf)
+0.667
 ```
 
 

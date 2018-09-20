@@ -1,5 +1,15 @@
 
 
+def sim_func(G, sim_method, term1, term2):
+    try:
+        sim = sim_method(G, term1, term2)
+    except ValueError:
+        sim = 0
+    if sim is None:
+        sim = 0
+    return sim
+
+
 def sim_max(terms1, terms2, sem_sim):
     """Similarity score between two term sets based on maximum value
     """
@@ -8,7 +18,7 @@ def sim_max(terms1, terms2, sem_sim):
         for t2 in terms2:
             sim = sem_sim(t1, t2)
             sims.append(sim)
-    return max(sims)
+    return round(max(sims), 3)
 
 
 def sim_avg(terms1, terms2, sem_sim):
@@ -19,7 +29,7 @@ def sim_avg(terms1, terms2, sem_sim):
         for t2 in terms2:
             sim = sem_sim(t1, t2)
             sims.append(sim)
-    return sum(sims) / (len(terms1) * len(terms2))
+    return round(sum(sims) / (len(terms1) * len(terms2)), 3)
 
 
 def sim_bma(terms1, terms2, sem_sim):
@@ -38,4 +48,4 @@ def sim_bma(terms1, terms2, sem_sim):
             sim = sem_sim(t1, t2)
             row.append(sim)
         sims.append(max(row))
-    return sum(sims) / (len(terms1) + len(terms2))
+    return round(sum(sims) / (len(terms1) + len(terms2)), 3)
