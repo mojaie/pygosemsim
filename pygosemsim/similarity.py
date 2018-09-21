@@ -4,36 +4,38 @@ import math
 
 import networkx as nx
 
+from pygosemsim import exception
 
-def precalc_descendants(G):
-    """Pre-calculate number of descendents of the graph nodes
+
+def precalc_lower_bounds(G):
+    """Pre-calculate the number of lower bounds of the graph nodes
     """
-    G.desc_count = Counter()
+    G.lower_bounds = Counter()
     for n in G:
-        G.desc_count[n] += 1
+        G.lower_bounds[n] += 1
         for ans in nx.ancestors(G, n):
-            G.desc_count[ans] += 1
+            G.lower_bounds[ans] += 1
+    G.descriptors.add("Pre-calculated lower bounds")
 
 
 def information_content(G, term):
     """Information content
 
     Args:
-        G(GoGraph): GoGraph object with precalculated descendants count
+        G(GoGraph): GoGraph object
         term(str): GO term
 
     Returns:
         str - Information content
 
     Raises:
-        KeyError: The term was not found in GoGraph
-        ValueError: No pre-calculated desc_count
+        PGSSLookupError: The term was not found in GoGraph
+        PGSSInvalidOperation: see `pygosemsim.similarity.precalc_lower_bounds`
     """
-    if G.desc_count is None:
-        raise ValueError("No pre-calculated desc_count.")
-    if term not in G.desc_count:
-        raise KeyError("Missing term")
-    freq = G.desc_count[term] / len(G)
+    G.require("Pre-calculated lower bounds")
+    if term not in G.lower_bounds:
+        raise exception.PGSSLookupError(f"Missing term: {term}")
+    freq = G.lower_bounds[term] / len(G)
     return round(-1 * math.log2(freq), 3)
 
 
@@ -41,7 +43,7 @@ def lowest_common_ancestor(G, term1, term2):
     """Naive implementation of lowest common ancestor (LCA)
 
     Args:
-        G(GoGraph): GoGraph object with precalculated descendants count
+        G(GoGraph): GoGraph object
         term1(str): GO term
         term2(str): GO term
 
@@ -50,22 +52,27 @@ def lowest_common_ancestor(G, term1, term2):
         or None if the terms have no common ancestors
 
     Raises:
-        nx.NetworkXError: The term was not found in GoGraph
-        ValueError: No pre-calculated desc_count
+        PGSSLookupError: The term was not found in GoGraph
+        PGSSInvalidOperation: see `pygosemsim.similarity.precalc_lower_bounds`
     """
-    if G.desc_count is None:
-        raise ValueError("No pre-calculated desc_count.")
-    common_ans = nx.ancestors(G, term1) & nx.ancestors(G, term2)
+    G.require("Pre-calculated lower bounds")
+    if term1 not in G:
+        raise exception.PGSSLookupError(f"Missing term: {term1}")
+    if term2 not in G:
+        raise exception.PGSSLookupError(f"Missing term: {term2}")
+    lb1 = nx.ancestors(G, term1) | {term1}
+    lb2 = nx.ancestors(G, term2) | {term2}
+    common_ans = lb1 & lb2
     if not common_ans:
         return
-    return min(common_ans, key=lambda x: G.desc_count[x])
+    return min(common_ans, key=lambda x: G.lower_bounds[x])
 
 
 def resnik(G, term1, term2):
     """Semantic similarity based on Resnik method
 
     Args:
-        G(GoGraph): GoGraph object with precalculated descendants count
+        G(GoGraph): GoGraph object
         term1(str): GO term
         term2(str): GO term
 
@@ -74,8 +81,8 @@ def resnik(G, term1, term2):
         or None if the terms have no common ancestors
 
     Raises:
-        nx.NetworkXError: The term was not found in GoGraph
-        ValueError: No pre-calculated desc_count
+        PGSSLookupError: The term was not found in GoGraph
+        PGSSInvalidOperation: see `pygosemsim.similarity.precalc_lower_bounds`
     """
     # TODO: may not work
     # mica = nx.lowest_common_ancestor(G, term1, term2)
@@ -85,24 +92,53 @@ def resnik(G, term1, term2):
 
 
 def norm_resnik(G, term1, term2):
-    """Resnik similarity normalized by possible maximum IC
+    """Semantic similarity based on Resnik method.
+    Information content of theoretically the most rare word (with frequency
+    of 1 / corpus size) is used for normalization.
+
+    Args:
+        G(GoGraph): GoGraph object
+        term1(str): GO term
+        term2(str): GO term
+
+    Returns:
+        float - Normalized Resnik similarity in the range of 0 to 1
+        or None if the terms have no common ancestors
+
+    Raises:
+        PGSSLookupError: The term was not found in GoGraph
+        PGSSInvalidOperation: see `pygosemsim.similarity.precalc_lower_bounds`
     """
-    max_ic = -1 * math.log2(3 / len(G))
+    max_ic = -1 * math.log2(1 / len(G))
     res = resnik(G, term1, term2)
-    if res is None or not max_ic:
+    if res is None:
         return
     return round(res / max_ic, 3)
 
 
 def lin(G, term1, term2):
-    """Semantic similarity based on Lin method
+    """Semantic similarity based on Lin method.
+
+    Args:
+        G(GoGraph): GoGraph object
+        term1(str): GO term
+        term2(str): GO term
+
+    Returns:
+        float - Lin similarity
+        returns None if the terms have no common ancestors
+        returns None if both term1 and term2 are the root term
+
+    Raises:
+        PGSSLookupError: The term was not found in GoGraph
+        PGSSInvalidOperation: see `pygosemsim.similarity.precalc_lower_bounds`
     """
     ic1 = information_content(G, term1)
     ic2 = information_content(G, term2)
     ic_lca = resnik(G, term1, term2)
     try:
         return round(2 * ic_lca / (ic1 + ic2), 3)
-    except TypeError:
+    except (TypeError, ZeroDivisionError):
         pass
 
 
@@ -134,22 +170,25 @@ def wang(G, term1, term2, weight_factor=default_wf):
     """Semantic similarity based on Wang method
 
     Args:
-        G(GoGraph): GoGraph object with precalculated descendants count
+        G(GoGraph): GoGraph object
         term1(str): GO term
         term2(str): GO term
         weight_factor(tuple): custom weight factor params
 
     Returns:
         float - Wang similarity value
-        or None if the terms have no common ancestors
 
     Raises:
-        KeyError: The term was not found in GoGraph
+        PGSSLookupError: The term was not found in GoGraph
     """
-    s1 = s_values(G, term1, weight_factor)
-    s2 = s_values(G, term2, weight_factor)
-    sva = sum(s1.values())
-    svb = sum(s2.values())
-    common = set(s1.keys()) & set(s2.keys())
-    cv = sum(s1[c] + s2[c] for c in common)
+    if term1 not in G:
+        raise exception.PGSSLookupError(f"Missing term: {term1}")
+    if term2 not in G:
+        raise exception.PGSSLookupError(f"Missing term: {term2}")
+    sa = s_values(G, term1, weight_factor)
+    sb = s_values(G, term2, weight_factor)
+    sva = sum(sa.values())
+    svb = sum(sb.values())
+    common = set(sa.keys()) & set(sb.keys())
+    cv = sum(sa[c] + sb[c] for c in common)
     return round(cv / (sva + svb), 3)

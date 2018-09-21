@@ -23,7 +23,7 @@ def clear():
     print(f"Resource directory is now empty: {resource_dir}")
 
 
-def download(name, url, decode="utf-8"):
+def download(filename, url, decode="utf-8"):
     """Download resources via HTTP
     """
     initialize()
@@ -51,10 +51,10 @@ def download(name, url, decode="utf-8"):
             data = b"".join(chunks)
             mode = "wb"
         print("")
-    with open(resource_dir / name, mode) as f:
+    with open(resource_dir / filename, mode) as f:
         f.write(data)
     tot = round(total_size / (1024 * 1024), 1)
-    print(f"Download finished: {name} ({tot}) MB")
+    print(f"Download finished: {filename} ({tot}) MB")
 
 
 def obo(name="go-basic"):

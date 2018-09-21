@@ -4,6 +4,8 @@ import re
 
 import networkx as nx
 
+from pygosemsim import exception
+
 
 resource_dir = Path(__file__).resolve().parent / "_resources"
 
@@ -12,11 +14,28 @@ splitkv = re.compile(r"(^[a-zA-Z_]+): (.+)")
 
 
 class GoGraph(nx.DiGraph):
+    """Directed acyclic graph of Gene Ontology
+
+    Attributes:
+        alt_ids(dict): alternative IDs dictionary
+        descriptors(set): flags and tokens that indicates the graph is
+            specialized for some kind of analyses
+        lower_bounds(collections.Counter):
+            Pre-calculated lower bound count (Number of descendants + 1).
+            Information content calculation requires precalc lower bounds.
+            see `pygosemsim.similarity.precalc_lower_bounds`
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.alt_ids = {}  # Alternative IDs
-        self.desc_count = None
+        self.descriptors = set()
+        self.lower_bounds = None
         # self.reversed = self.reverse(copy=False)
+
+    def require(self, desc):
+        if desc not in self.descriptors:
+            raise exception.PGSSInvalidOperation(
+                "'{}' is required.".format(desc))
 
 
 def parse_block(lines):
@@ -106,6 +125,8 @@ def from_obo_lines(lines, ignore_obsolete=True):
 
     # Check
     assert not (set(G) & alt_ids), "Inconsistent alternative IDs"
+    assert len(G) >= 2, "The graph size is too small"
+    assert G.number_of_edges(), "The graph has no edges"
 
     return G
 

@@ -1,13 +1,11 @@
 
-import networkx as nx
+from pygosemsim import exception
 
 
 def sim_func(G, sim_method, term1, term2):
     try:
         sim = sim_method(G, term1, term2)
-    except (KeyError, nx.NetworkXError):  # missing term
-        return
-    if sim is None:  # similarity undefined (ex. no_common_ancestors)
+    except exception.PGSSLookupError:
         return
     return sim
 

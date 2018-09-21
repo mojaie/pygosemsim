@@ -17,15 +17,27 @@ Getting started
 
 ```pycon
 >>> from pygosemsim import download
+
+>>> # Download from http://purl.obolibrary.org/
 >>> download.obo("go-basic")
 Download started: http://purl.obolibrary.org/obo/go/go-basic.obo
 Downloaded 32.2MB of 32.2MB (100.0 %)
 Download finished: go-basic.obo (32.2) MB
 
+>>> # Or manually
+>>> download.download("goslim_chembl.obo",
+>>>     "http://www.geneontology.org/ontology/subsets/goslim_chembl.obo")
+Download started: http://www.geneontology.org/ontology/subsets/goslim_chembl.obo
+Downloaded 0.5MB of 0.5MB (100.0 %)
+Download finished: goslim_chembl.obo (0.5) MB
+
 >>> from pygosemsim import graph
 >>> import networkx as nx
 >>> G = graph.from_resource("go-basic")
-format-version: 1.2, data-version: releases/2018-09-17
+format-version: 1.2
+
+>>> G_chembl = graph.from_resource("goslim_chembl")
+format-version: 1.2
 
 >>> nx.ancestors(G, "GO:0004396")
 {'GO:0003674', 'GO:0003824', 'GO:0016301', 'GO:0016740', 'GO:0016772', 'GO:0016773', 'GO:0019200'}
@@ -39,7 +51,7 @@ format-version: 1.2, data-version: releases/2018-09-17
 
 ```pycon
 >>> from pygosemsim import similarity
->>> graph.precalc_descendants(G)
+>>> graph.precalc_lower_bounds(G)
 
 >>> similarity.resnik(G, "GO:0004340", "GO:0019158")
 13.459

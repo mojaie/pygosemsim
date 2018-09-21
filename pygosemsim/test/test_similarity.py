@@ -6,9 +6,7 @@
 
 import unittest
 
-import networkx as nx
-
-from pygosemsim import graph, similarity
+from pygosemsim import exception, graph, similarity
 
 
 class TestSimilarity(unittest.TestCase):
@@ -22,38 +20,48 @@ class TestSimilarity(unittest.TestCase):
         ])
 
         # No pre-calculated desc_count
-        with self.assertRaises(ValueError):
+        with self.assertRaises(exception.PGSSInvalidOperation):
             similarity.lowest_common_ancestor(G, 6, 7)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(exception.PGSSInvalidOperation):
             similarity.information_content(G, 6)
 
-        similarity.precalc_descendants(G)
-        self.assertEqual(G.desc_count[0], 12)
+        # Graph 1
+        similarity.precalc_lower_bounds(G)
+        self.assertEqual(G.lower_bounds[0], 12)
         self.assertEqual(similarity.lowest_common_ancestor(G, 6, 7), 1)
-        self.assertEqual(G.desc_count[1], 6)
-        self.assertEqual(G.desc_count[2], 7)
+        self.assertEqual(G.lower_bounds[1], 6)
+        self.assertEqual(G.lower_bounds[2], 7)
         self.assertEqual(similarity.lowest_common_ancestor(G, 3, 4), 1)
-
+        self.assertEqual(similarity.resnik(G, 3, 4), 1.322)
+        # Direct ancestor/descendant
+        self.assertEqual(similarity.lowest_common_ancestor(G, 12, 14), 12)
         # No common ancestors
         self.assertEqual(similarity.lowest_common_ancestor(G, 7, 13), None)
+        self.assertEqual(similarity.resnik(G, 7, 13), None)
         # Missing node
-        with self.assertRaises(nx.NetworkXError):
+        with self.assertRaises(exception.PGSSLookupError):
             similarity.lowest_common_ancestor(G, 6, 18)
 
+        # Graph 2
         G.add_edge(7, 12)
-        similarity.precalc_descendants(G)
-        self.assertEqual(G.desc_count[1], 9)
+        similarity.precalc_lower_bounds(G)
+        self.assertEqual(G.lower_bounds[1], 9)
         self.assertEqual(similarity.lowest_common_ancestor(G, 3, 4), 2)
-
+        self.assertEqual(similarity.resnik(G, 3, 4), 1.1)
+        self.assertEqual(similarity.norm_resnik(G, 3, 4), 0.282)
         # Information content
         self.assertEqual(similarity.information_content(G, 6), 3.907)
         self.assertEqual(similarity.information_content(G, 0), 0)
         # Missing node
-        with self.assertRaises(KeyError):
+        with self.assertRaises(exception.PGSSLookupError):
             similarity.information_content(G, 18)
+        # Root node
+        self.assertEqual(similarity.lowest_common_ancestor(G, 0, 0), 0)
+        self.assertEqual(similarity.resnik(G, 0, 0), 0)
+        self.assertEqual(similarity.norm_resnik(G, 0, 0), 0)
+        self.assertEqual(similarity.lin(G, 0, 0), None)  # Zero division
 
-        # resnik
-        self.assertEqual(similarity.resnik(G, 3, 4), 1.1)
+
 
 
     """
