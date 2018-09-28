@@ -192,3 +192,35 @@ def wang(G, term1, term2, weight_factor=default_wf):
     common = set(sa.keys()) & set(sb.keys())
     cv = sum(sa[c] + sb[c] for c in common)
     return round(cv / (sva + svb), 3)
+
+
+def pekar(G, term1, term2):
+    """Edge-based similarity based on the method by Pekar et al.
+    The original study deals with tree-structured taxonomy.
+    In the context of DAG, LCA is defined as the node that have
+    the lowest number of descendant terms.
+
+    Args:
+        G(GoGraph): GoGraph object
+        term1(str): GO term
+        term2(str): GO term
+
+    Returns:
+        float - similarity value
+        returns None if both term1 and term2 are the root term
+
+    Raises:
+        PGSSLookupError: The term was not found in GoGraph
+        PGSSInvalidOperation: see `pygosemsim.similarity.precalc_lower_bounds`
+    """
+    # TODO: not optimized yet
+    mica = lowest_common_ancestor(G, term1, term2)
+    ac = nx.shortest_path_length(G, source=mica, target=term1)
+    bc = nx.shortest_path_length(G, source=mica, target=term2)
+    root = max(nx.ancestors(G, mica),
+               key=lambda x: G.lower_bounds[x], default=mica)
+    rootc = nx.shortest_path_length(G, source=root, target=mica)
+    try:
+        return round(rootc / (ac + bc + rootc), 3)
+    except ZeroDivisionError:
+        pass

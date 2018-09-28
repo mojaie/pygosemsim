@@ -33,6 +33,7 @@ class TestSimilarity(unittest.TestCase):
         self.assertEqual(G.lower_bounds[2], 7)
         self.assertEqual(similarity.lowest_common_ancestor(G, 3, 4), 1)
         self.assertEqual(similarity.resnik(G, 3, 4), 1.322)
+        self.assertEqual(similarity.pekar(G, 3, 4), 0.333)
         # Direct ancestor/descendant
         self.assertEqual(similarity.lowest_common_ancestor(G, 12, 14), 12)
         # No common ancestors
@@ -49,6 +50,7 @@ class TestSimilarity(unittest.TestCase):
         self.assertEqual(similarity.lowest_common_ancestor(G, 3, 4), 2)
         self.assertEqual(similarity.resnik(G, 3, 4), 1.1)
         self.assertEqual(similarity.norm_resnik(G, 3, 4), 0.282)
+        self.assertEqual(similarity.pekar(G, 3, 4), 0.143)
         # Information content
         self.assertEqual(similarity.information_content(G, 6), 3.907)
         self.assertEqual(similarity.information_content(G, 0), 0)
@@ -59,6 +61,7 @@ class TestSimilarity(unittest.TestCase):
         self.assertEqual(similarity.lowest_common_ancestor(G, 0, 0), 0)
         self.assertEqual(similarity.resnik(G, 0, 0), 0)
         self.assertEqual(similarity.norm_resnik(G, 0, 0), 0)
+        self.assertEqual(similarity.pekar(G, 0, 0), None)
         self.assertEqual(similarity.lin(G, 0, 0), None)  # Zero division
 
 

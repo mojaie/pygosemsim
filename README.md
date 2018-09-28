@@ -117,9 +117,12 @@ Features
 
 - File parsers (.obo, .gaf)
 - Semantic similarity
-  - Resnik method
-  - Lin method
-  - Wang method
+  - node-based
+    - Resnik et al.
+    - Lin et al.
+  - edge-based
+    - Pekar et al.
+  - Wang et al.
 - Semantic similarity between two term sets
   - max
   - avg
